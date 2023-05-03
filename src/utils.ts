@@ -32,7 +32,8 @@ export default class GlobalConstants {
 	}
 
 	static get GALAKTIC_GANG(): string {
-		return '0xf4cd7e65348deb24e30dedee639c4936ae38b763'
+		return '0x5dfeb75abae11b138a16583e03a2be17740eaded'
+		// return '0xf4cd7e65348deb24e30dedee639c4936ae38b763'
 	}
 
 	static get BI_ZERO(): BigInt {

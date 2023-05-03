@@ -83,8 +83,8 @@ type User @entity {
   spent: BigDecimal!
   earned: BigDecimal!
   nftOwneds: [NFT!]! @derivedFrom(field: "owner")
-  collectionOwneds: [Collection!]! @derivedFrom(field: "owner")
-  sales: [Sale!]! @derivedFrom(field: "buyer")
+  collectionOwneds: [Collection!] @derivedFrom(field: "owner")
+  transcations: [Transcation!]! @derivedFrom(field: "buyer")
 }
 
 type Collection @entity {
@@ -98,14 +98,14 @@ type Collection @entity {
   owner: User!
 
   event: [Event!]! @derivedFrom(field: "collection")
-  sales: [Sale!]! @derivedFrom(field: "collection")
+  transcations: [Transcation!]! @derivedFrom(field: "collection")
 }
 
 type NFT @entity {
   id: ID! #Collection + Token ID
   collection: Collection
   symbol: String
-  sale: Sale
+  transcation: Transcation
 
   salesNum: BigInt!
   salesMoney: BigInt
@@ -115,7 +115,7 @@ type NFT @entity {
   events: [Event!]! @derivedFrom(field: "nft")
 }
 
-type Sale implements Event @entity {
+type Transcation implements Event @entity {
   id: ID!
   sellHash: Bytes!
   buyHash: Bytes!
@@ -150,4 +150,11 @@ enum EventType {
   SALE
   FEE
   AUCTION
+}
+
+type Token @entity {
+  id: ID!
+  tokenID: BigInt
+  from: User
+  to: User
 }

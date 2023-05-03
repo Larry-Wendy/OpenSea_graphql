@@ -1,5 +1,5 @@
 import { Address, BigInt } from '@graphprotocol/graph-ts'
-import { User, Collection, NFT, Sale } from '../../generated/schema'
+import { User, Collection, NFT, Transcation } from '../../generated/schema'
 import GlobalConstants from '../utils'
 
 export function getOrCreateNft(
@@ -19,13 +19,13 @@ export function getOrCreateNft(
 
 export function updateNftMetrics(
 	buyer: User,
-	sale: Sale,
+	sale: Transcation,
 	tokenId: BigInt,
 	collection: Collection,
 	nft: NFT
 ): void {
 	nft.owner = buyer.id
-	nft.sale = sale.id
+	nft.transcation = sale.id
 	nft.tokenID = tokenId
 	nft.collection = collection.id
 	nft.salesNum = nft.salesNum.plus(GlobalConstants.BI_ONE)

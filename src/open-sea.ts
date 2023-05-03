@@ -1,4 +1,5 @@
-import { BigInt, ethereum } from '@graphprotocol/graph-ts'
+import { log, BigInt, ethereum } from '@graphprotocol/graph-ts'
+// import { ERC20, Transfer as TransferEvent } from '../generated/ERC20/ERC20';
 import {
   OrderApprovedPartOne as OrderApprovedPartOneEvent,
   OrderApprovedPartTwo as OrderApprovedPartTwoEvent,
@@ -8,12 +9,13 @@ import {
   OwnershipTransferred as OwnershipTransferredEvent
 } from "../generated/OpenSea/OpenSea"
 import {
+  Token,
   OrderApprovedPartOne,
   OrderApprovedPartTwo,
   OrderCancelled,
   OrdersMatched,
   OwnershipRenounced,
-  OwnershipTransferred
+  OwnershipTransferred,
 } from "../generated/schema"
 import {
 	getOrCreateUser,
@@ -96,6 +98,11 @@ export function handleOrderCancelled(event: OrderCancelledEvent): void {
 }
 
 export function handleOrdersMatched(event: OrdersMatchedEvent): void {
+  log.debug('OrdersMatched detected. maker: {} | taker: {} | price: {}', [
+    event.params.maker.toHexString(),
+    event.params.taker.toHexString(),
+    event.params.price.toHexString(),
+  ]);
   let entity = new OrdersMatched(
     event.transaction.hash.concatI32(event.logIndex.toI32())
   )
@@ -122,24 +129,30 @@ export function handleOrdersMatched(event: OrdersMatchedEvent): void {
 
   if (receipt) {
     for (let index = 0; index < receipt.logs.length; index++) {
-      const _tokenID = receipt.logs[index].topics[0]
-	    const tokenId = ethereum.decode('uin256', _tokenID)!.toBigInt()
-      let buyer = getOrCreateUser(maker)
-      let seller = getOrCreateUser(taker)
-      let collection = getOrCreateCollection(metadata.toHexString())
-      let nft = getOrCreateNft(tokenId, collection, maker)
-      let sale = getOrCreateSale(event)
-      
-      updateCollectionAggregates(collection, buyer, price, nft)
-      updateNftMetrics(buyer, sale, tokenId, collection, nft)
-      updateSellerAggregates(seller, price)
-      updateBuyerAggregates(buyer, price)
-      updateSale(sale, buyHash, sellHash, buyer, seller, price, collection)
-      buyer.save()
-      seller.save()
-      collection.save()
-      nft.save()
-      sale.save()
+      const _topic0 = receipt.logs[index].topics[0]
+			const _address = receipt.logs[index].address
+			if (_topic0.equals(GlobalConstants.TRANSFER_SIG) &&
+				  _address.toHexString() == GlobalConstants.GALAKTIC_GANG) {
+        const _tokenID = receipt.logs[index].topics[3]
+        const tokenId = ethereum.decode('uin256', _tokenID)!.toBigInt()
+
+        let buyer = getOrCreateUser(maker)
+        let seller = getOrCreateUser(taker)
+        let collection = getOrCreateCollection(metadata.toHexString())
+        let nft = getOrCreateNft(tokenId, collection, maker)
+        let sale = getOrCreateSale(event)
+        
+        updateCollectionAggregates(collection, buyer, price, nft)
+        updateNftMetrics(buyer, sale, tokenId, collection, nft)
+        updateSellerAggregates(seller, price)
+        updateBuyerAggregates(buyer, price)
+        updateSale(sale, buyHash, sellHash, buyer, seller, price, collection)
+        buyer.save()
+        seller.save()
+        collection.save()
+        nft.save()
+        sale.save()
+       }
     }
   }
 }
@@ -172,3 +185,22 @@ export function handleOwnershipTransferred(
 
   entity.save()
 }
+
+// export function handleTransfer(event: TransferEvent): void {
+//   log.debug('Transfer detected. From: {} | To: {} | TokenID: {}', [
+//     event.params.from.toHexString(),
+//     event.params.to.toHexString(),
+//     event.params.value.toHexString(),
+//   ]);
+//   let previousOwner = getOrCreateUser(event.params.from);
+//   let newOwner = getOrCreateUser(event.params.to);
+//   let token = Token.load(event.params.value.toHexString());
+
+//   if (token == null) {
+//     token = new Token(event.params.value.toHexString());
+//     token.tokenID = event.params.value
+//     token.to = newOwner.id;
+//     token.from = previousOwner.id;
+//   }
+//   token.save();
+// }
