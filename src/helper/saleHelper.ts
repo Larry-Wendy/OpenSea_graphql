@@ -1,8 +1,8 @@
 import { BigDecimal, Bytes, ethereum } from '@graphprotocol/graph-ts'
-import { User, Collection, Transcation } from '../../generated/schema'
+import { User, Collection, Transcation, NFT } from '../../generated/schema'
 import GlobalConstants from '../utils'
 
-export function getOrCreateSale(event: ethereum.Event): Transcation {
+export function getOrCreateSale(event: ethereum.Event, nft: NFT): Transcation {
 	let sale = Transcation.load(GlobalConstants.globalId(event))
 	if (!sale) {
 		sale = new Transcation(GlobalConstants.globalId(event))
@@ -11,6 +11,7 @@ export function getOrCreateSale(event: ethereum.Event): Transcation {
 		sale.blockHash = event.block.hash
 		sale.logNumber = event.logIndex
 		sale.blockNumber = event.block.number
+		sale.nft = nft.id
 		sale.eventType = 'SALE'
 	}
 	return sale as Transcation

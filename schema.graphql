@@ -99,6 +99,7 @@ type Collection @entity {
 
   event: [Event!]! @derivedFrom(field: "collection")
   transcations: [Transcation!]! @derivedFrom(field: "collection")
+  feesReceived: [Fee!]! @derivedFrom(field: "feeRecipient")
 }
 
 type NFT @entity {
@@ -157,4 +158,42 @@ type Token @entity {
   tokenID: BigInt
   from: User
   to: User
+}
+
+type Fee implements Event @entity {
+  id: ID!
+  takerRelayerFee: BigInt
+  makerRelayerFee: BigInt
+  takerProtocolFee: BigInt
+  makerProtocolFee: BigInt
+  feeRecipient: Collection!
+  collection: Collection
+  nft: NFT
+  eventType: EventType!
+  txHash: Bytes!
+  blockHash: Bytes!
+  timestamp: BigInt!
+  logNumber: BigInt!
+  blockNumber: BigInt!
+}
+
+type Auction implements Event @entity {
+  id: ID!
+  listingTime: BigInt
+  expirationTime: BigInt
+  basePrice: BigInt
+  paymentToken: Bytes
+  staticTarget: Bytes
+  staticExtraData: Bytes
+  collection: Collection
+  nft: NFT
+  extra: BigInt
+  hash: Bytes
+  orderbook: Boolean!
+  eventType: EventType!
+  txHash: Bytes!
+  blockHash: Bytes!
+  timestamp: BigInt!
+  logNumber: BigInt!
+  blockNumber: BigInt!
 }

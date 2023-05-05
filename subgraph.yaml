@@ -19,6 +19,9 @@ dataSources:
         - Collection
         - NFT
         - Transcation
+        - Auction
+        - Fee
+        - PaymentToken
         - OrderApprovedPartOne
         - OrderApprovedPartTwo
         - OrderCancelled

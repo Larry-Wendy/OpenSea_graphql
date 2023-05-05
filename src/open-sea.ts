@@ -26,6 +26,8 @@ import {
 	getOrCreateCollection,
 	updateCollectionAggregates,
 } from './helper/collectionHelper'
+import { getOrCreateAuction } from './helper/auctionHelper'
+import { getOrCreateFee } from './helper/feeHelper'
 import { getOrCreateNft, updateNftMetrics } from './helper/nftHelper'
 import { getOrCreateSale, updateSale } from './helper/saleHelper'
 import GlobalConstants from './utils'
@@ -55,6 +57,18 @@ export function handleOrderApprovedPartOne(
   entity.transactionHash = event.transaction.hash
 
   entity.save()
+
+  let fee = getOrCreateFee(event)
+	let collection = getOrCreateCollection(
+		event.params.feeRecipient.toHexString()
+	)
+  fee.feeRecipient = collection.id
+	fee.takerProtocolFee = event.params.takerProtocolFee
+	fee.makerProtocolFee = event.params.makerProtocolFee
+	fee.makerRelayerFee = event.params.makerRelayerFee
+	fee.takerRelayerFee = event.params.takerRelayerFee
+
+	fee.save()
 }
 
 export function handleOrderApprovedPartTwo(
@@ -82,6 +96,18 @@ export function handleOrderApprovedPartTwo(
   entity.transactionHash = event.transaction.hash
 
   entity.save()
+
+  let auction = getOrCreateAuction(event.params.hash.toHexString(), event)
+  auction.listingTime = event.params.listingTime
+	auction.basePrice = event.params.basePrice
+	auction.expirationTime = event.params.expirationTime
+	auction.paymentToken = event.params.paymentToken
+	auction.staticExtraData = event.params.staticExtradata
+	auction.extra = event.params.extra
+	auction.hash = event.params.hash
+	auction.orderbook = event.params.orderbookInclusionDesired
+
+	auction.save()
 }
 
 export function handleOrderCancelled(event: OrderCancelledEvent): void {
@@ -138,9 +164,9 @@ export function handleOrdersMatched(event: OrdersMatchedEvent): void {
 
         let buyer = getOrCreateUser(maker)
         let seller = getOrCreateUser(taker)
-        let collection = getOrCreateCollection(metadata.toHexString())
+        let collection = getOrCreateCollection(_address.toHexString())
         let nft = getOrCreateNft(tokenId, collection, maker)
-        let sale = getOrCreateSale(event)
+        let sale = getOrCreateSale(event, nft)
         
         updateCollectionAggregates(collection, buyer, price, nft)
         updateNftMetrics(buyer, sale, tokenId, collection, nft)
